@@ -73,10 +73,9 @@ def evaluate(name: str, p: dict[str, Any]) -> dict[str, Any]:
         chosen = choose_boosters(rows, float(p["required"]), str(p["failed"]))
         return {"decision": "reroute", "value": chosen, "evidence": {"failed": p["failed"]}}
     if name == "custody_chain":
-        contract_version = p.get("_contract")
         events = [Event(int(x["seq"]), str(x["src"]), str(x["dst"]), _dt(x["at"]), str(x["seal"])) for x in p["events"]]
         end = validate_custody(str(p["origin"]), events)
-        return {"decision": "accept", "value": end, "evidence": {"events": len(events)}}
+        return {"decision": "accept", "value": end, "evidence": {"events": len(events), "time_order": p.get("_time_order", "nondecreasing")}}
     if name == "collector_schedule":
         requests = [Req(str(x["site"]), _dt(x["earliest"]), _dt(x["latest"]), int(x["minutes"]), bool(x["certified"])) for x in p["requests"]]
         people = [Collector(str(x["name"]), bool(x["certified"]), _dt(x["start"]), _dt(x["end"])) for x in p["collectors"]]
