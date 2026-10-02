@@ -73,8 +73,12 @@ def evaluate(name: str, p: dict[str, Any]) -> dict[str, Any]:
         chosen = choose_boosters(rows, float(p["required"]), str(p["failed"]))
         return {"decision": "reroute", "value": chosen, "evidence": {"failed": p["failed"]}}
     if name == "custody_chain":
-        contract_version = p.get("_contract")
-        events = [Event(int(x["seq"]), str(x["src"]), str(x["dst"]), _dt(x["at"]), str(x["seal"])) for x in p["events"]]
+        events = []
+        for x in p["events"]:
+            at = _dt(x["at"])
+            if at.tzinfo is None or at.tzinfo.utcoffset(at) is None:
+                raise ValueError("timezone")
+            events.append(Event(int(x["seq"]), str(x["src"]), str(x["dst"]), at, str(x["seal"])))
         end = validate_custody(str(p["origin"]), events)
         return {"decision": "accept", "value": end, "evidence": {"events": len(events)}}
     if name == "collector_schedule":
